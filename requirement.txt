@@ -14,3 +14,11 @@ langchain-qdrant
 langchain-pinecone
 pypdf
 langchain_community
+matplotlib
+seaborn
+pandas
+numpy
+fastapi
+uvicorn
+pydantic
+tavily
