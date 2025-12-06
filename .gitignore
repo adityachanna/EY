@@ -1,0 +1,20 @@
+# Environment variables
+.env
+
+# Virtual Environment
+.venv/
+venv/
+env/
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+
+# System specific
+.DS_Store
+
+# Output folder (optional, uncomment if you want to ignore generated outputs)
+# output/
