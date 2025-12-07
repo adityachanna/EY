@@ -1,5 +1,6 @@
 from langchain.tools import tool
 from langchain.agents import create_agent
+from langchain.agents.middleware import ModelCallLimitMiddleware, ToolCallLimitMiddleware
 from langchain_groq import ChatGroq
 import os
 import tempfile
@@ -192,4 +193,12 @@ def get_visualization_agent():
     5. Return the full path of the saved image file provided by the tool output.
     """
     
-    return create_agent(llm, tools=tools, system_prompt=system_prompt)
+    return create_agent(
+        llm, 
+        tools=tools, 
+        system_prompt=system_prompt,
+        middleware=[
+            ModelCallLimitMiddleware(run_limit=10, exit_behavior="end"),
+            ToolCallLimitMiddleware(run_limit=3, exit_behavior="continue")
+        ]
+    )

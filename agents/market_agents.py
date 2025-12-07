@@ -1,6 +1,7 @@
 import os
 from dotenv import load_dotenv
 from langchain.agents import create_agent
+from langchain.agents.middleware import ModelCallLimitMiddleware, ToolCallLimitMiddleware
 from langchain_openai import ChatOpenAI
 from langchain.tools import tool
 from langchain_groq import ChatGroq
@@ -41,8 +42,16 @@ def get_market_agent():
         "Use 'get_market_insights' to retrieve market size, CAGR, and competitor landscapes. "
         "If a query is outside these specific topics, try to map it to the closest available category or state limitations."
     )
-    # Using create_agent which returns a RunnableGraph runnable
-    return create_agent(llm, tools=tools, system_prompt=system_prompt)
+    # Using create_agent which returns a RunnableGraph runnable with middleware
+    return create_agent(
+        llm, 
+        tools=tools, 
+        system_prompt=system_prompt,
+        middleware=[
+            ModelCallLimitMiddleware(run_limit=10, exit_behavior="end"),
+            ToolCallLimitMiddleware(run_limit=3, exit_behavior="continue")
+        ]
+    )
 
 # --- 2. EXIM Agent (Trade Trends) ---
 @tool
@@ -62,7 +71,15 @@ def get_trade_agent():
         "You have specific data for Minocycline, Telmisartan, and Salbutamol. "
         "Use 'get_trade_data' to assess supply stability, identify major suppliers (e.g., in India/China), and check price trends."
     )
-    return create_agent(llm, tools=tools, system_prompt=system_prompt)
+    return create_agent(
+        llm, 
+        tools=tools, 
+        system_prompt=system_prompt,
+        middleware=[
+            ModelCallLimitMiddleware(run_limit=10, exit_behavior="end"),
+            ToolCallLimitMiddleware(run_limit=3, exit_behavior="continue")
+        ]
+    )
 
 # --- 3. USPTO Agent (Patents) ---
 @tool
@@ -82,7 +99,15 @@ def get_patent_agent():
         "You have detailed patent records for Minocycline (esp. depression/neuro usage), Telmisartan (fibrosis/NASH), and Inhaler devices. "
         "Use 'search_patents' to find expiration dates and assignee details."
     )
-    return create_agent(llm, tools=tools, system_prompt=system_prompt)
+    return create_agent(
+        llm, 
+        tools=tools, 
+        system_prompt=system_prompt,
+        middleware=[
+            ModelCallLimitMiddleware(run_limit=10, exit_behavior="end"),
+            ToolCallLimitMiddleware(run_limit=3, exit_behavior="continue")
+        ]
+    )
 
 # --- 4. Clinical Trials Agent ---
 @tool
@@ -102,7 +127,15 @@ def get_trials_agent():
         "You have specific records for Minocycline (CNS indications), Telmisartan, and Metformin. "
         "Use 'get_clinical_trials' to check trial phases, sponsors, and results."
     )
-    return create_agent(llm, tools=tools, system_prompt=system_prompt)
+    return create_agent(
+        llm, 
+        tools=tools, 
+        system_prompt=system_prompt,
+        middleware=[
+            ModelCallLimitMiddleware(run_limit=10, exit_behavior="end"),
+            ToolCallLimitMiddleware(run_limit=3, exit_behavior="continue")
+        ]
+    )
 
 
 if __name__ == "__main__":

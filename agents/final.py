@@ -1,5 +1,6 @@
 from deepagents import create_deep_agent, CompiledSubAgent
 from langchain.agents import create_agent
+from langchain.agents.middleware import ModelCallLimitMiddleware, ToolCallLimitMiddleware
 from dotenv import load_dotenv
 from market_agents import get_market_agent
 from market_agents import get_trade_agent
@@ -697,7 +698,11 @@ agent = create_deep_agent(
     subagents=subagents,
     system_prompt=prompt,
     backend=get_backend,
-    store=store
+    store=store,
+    middleware=[
+        ModelCallLimitMiddleware(run_limit=40, exit_behavior="end"),
+        ToolCallLimitMiddleware(run_limit=20, exit_behavior="continue")
+    ]
 )
 
 def run_deep_research(user_query: str):

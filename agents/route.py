@@ -21,10 +21,15 @@ except ImportError:
     from final import agent as deep_agent
     from lite import get_answer as run_lite_agent
 
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, UploadFile, File
 from fastapi.responses import StreamingResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
+
+try:
+    from agents.ingest_docs import ingest_file
+except ImportError:
+    from ingest_docs import ingest_file
 
 # Configure logging
 logging.basicConfig(
@@ -55,7 +60,7 @@ class AgentResponse(BaseModel):
     """Response model for agent results."""
     agent: str = Field(..., description="Agent type that processed the query: 'deep' or 'lite'")
     text: str = Field(..., description="Response text in markdown format")
-    images: List[Dict[str, str]] = Field(default=[], description="List of base64-encoded images")
+    images: List[Dict[str, Any]] = Field(default=[], description="List of base64-encoded images")
     file_path: Optional[str] = Field(None, description="Path to saved report file (for deep agent)")
     report_base64: Optional[str] = Field(None, description="Base64 encoded content of the markdown report")
     report_filename: Optional[str] = Field(None, description="Filename of the saved report")
@@ -68,6 +73,15 @@ class ErrorResponse(BaseModel):
     error: str
     detail: Optional[str] = None
     timestamp: str
+
+
+class IngestResponse(BaseModel):
+    """Response model for document ingestion."""
+    success: bool = Field(..., description="Whether ingestion was successful")
+    message: str = Field(..., description="Status message")
+    filename: str = Field(..., description="Name of the ingested file")
+    chunks_created: Optional[int] = Field(None, description="Number of chunks created")
+    timestamp: str = Field(..., description="ISO timestamp of the ingestion")
 
 
 # ============================================================================
@@ -489,6 +503,7 @@ async def root():
         "endpoints": {
             "query": "/api/query",
             "query_stream": "/api/query/stream",
+            "ingest": "/api/ingest",
             "health": "/health"
         }
     }
@@ -613,6 +628,71 @@ async def delete_session(session_id: str):
         return {"message": "Session deleted", "session_id": session_id}
     else:
         raise HTTPException(status_code=404, detail="Session not found")
+
+
+@app.post("/api/ingest", response_model=IngestResponse)
+async def ingest_document(file: UploadFile = File(...)):
+    """
+    Upload and ingest a document into the internal knowledge base.
+    
+    Supported formats: PDF, DOCX, TXT, MD
+    
+    The document will be:
+    1. Saved temporarily
+    2. Split into chunks
+    3. Embedded using Google Gemini embeddings
+    4. Stored in Pinecone vector database
+    """
+    import tempfile
+    import shutil
+    
+    # Validate file extension
+    allowed_extensions = ['.pdf', '.docx', '.txt', '.md']
+    file_ext = os.path.splitext(file.filename)[1].lower()
+    
+    if file_ext not in allowed_extensions:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unsupported file type: {file_ext}. Allowed: {', '.join(allowed_extensions)}"
+        )
+    
+    temp_file_path = None
+    
+    try:
+        # Create temporary file
+        with tempfile.NamedTemporaryFile(delete=False, suffix=file_ext) as temp_file:
+            temp_file_path = temp_file.name
+            # Copy uploaded file to temp location
+            shutil.copyfileobj(file.file, temp_file)
+        
+        logger.info(f"Processing uploaded file: {file.filename}")
+        
+        # Process the document using ingest_file
+        # We need to modify ingest_file to return chunk count
+        ingest_file(temp_file_path)
+        
+        return IngestResponse(
+            success=True,
+            message=f"Document '{file.filename}' successfully ingested into knowledge base",
+            filename=file.filename,
+            chunks_created=None,  # Could be enhanced to return actual count
+            timestamp=datetime.now().isoformat()
+        )
+        
+    except Exception as e:
+        logger.error(f"Document ingestion failed: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to ingest document: {str(e)}"
+        )
+    
+    finally:
+        # Clean up temporary file
+        if temp_file_path and os.path.exists(temp_file_path):
+            try:
+                os.unlink(temp_file_path)
+            except Exception as e:
+                logger.warning(f"Failed to delete temp file {temp_file_path}: {e}")
 
 
 # ============================================================================

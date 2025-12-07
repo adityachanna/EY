@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 
 from langchain.tools import tool
 from langchain.agents import create_agent
+from langchain.agents.middleware import ModelCallLimitMiddleware, ToolCallLimitMiddleware
 from langchain.chat_models import init_chat_model
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain_pinecone import PineconeVectorStore
@@ -74,8 +75,16 @@ def get_knowledge_agent():
         "stick to that company's questions only."
     )
 
-    # Create Agent
-    agent = create_agent(llm, tools=tools, system_prompt=system_prompt)
+    # Create Agent with middleware
+    agent = create_agent(
+        llm, 
+        tools=tools, 
+        system_prompt=system_prompt,
+        middleware=[
+            ModelCallLimitMiddleware(run_limit=10, exit_behavior="end"),
+            ToolCallLimitMiddleware(run_limit=3, exit_behavior="continue")
+        ]
+    )
     return agent
 
 
