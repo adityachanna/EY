@@ -71,9 +71,7 @@ graph TD
         Lite --> WebSearch[Tavily Search]
     end
 
-
------
-
+```
 ## Agent Ecosystem
 
 ### The Router (Session Manager)
