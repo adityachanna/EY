@@ -1,7 +1,7 @@
-Here is the comprehensive, code-aligned `README.md` for **Aetheria**, tailored to the codebase you provided (specifically `route.py`, `final.py`, `market_agents.py`, etc.) and the requirements of EY Techathon 6 PS 1.
 
 
-# Aetheria — Pharmaceutical Strategic Intelligence Orchestrator
+
+# Aetheria : Pharmaceutical Strategic Intelligence Orchestrator
 
 **Submission for EY Techathon 6 | Problem Statement 1: Pharmaceutical Strategy**
 
