@@ -272,7 +272,3 @@ Aetheria/
   * **Maintainer:** Aditya Channa
   * **Event:** EY Techathon 6
 
-<!-- end list -->
-
-```
-```
