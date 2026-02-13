@@ -3,8 +3,6 @@
 
 # Aetheria : Pharmaceutical Strategic Intelligence Orchestrator
 
-**Submission for EY Techathon 6 | Problem Statement 1: Pharmaceutical Strategy**
-
 **Aetheria** is a production-ready, multi-agent system designed to revolutionize strategic decision-making in the pharmaceutical industry. By orchestrating a hybrid architecture of **Deep Research Agents** (for comprehensive reports) and **Lite Agents** (for rapid insights), Aetheria automates the analysis of drug repurposing, market viability, supply chain risks, and patent landscapes.
 
 ---
